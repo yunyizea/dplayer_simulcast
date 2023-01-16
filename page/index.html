@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <script src="/node_modules/dplayer/dist/DPlayer.min.js"></script> -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/dplayer/1.25.1/DPlayer.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        #videoContainer {
+            width: 1000px;
+            margin: 20px auto;
+        }
+    </style>
+
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="videoContainer"></div>
+
+    <script defer>
+        const videoURL = 'https://video.yunyize.com:8000/%E4%B8%89%E7%94%9F%E4%B8%89%E4%B8%96%E6%9E%95%E4%B8%8A%E4%B9%A6/%E4%B8%89%E7%94%9F%E4%B8%89%E4%B8%96%E6%9E%95%E4%B8%8A%E4%B9%A6.EP01.2020.HD1080P.X264.AAC.Mandarin.CHS.Mp4Ba.mp4';
+        const wss = 'ws://localhost:14514';
+        const vid = '1871e5db4cd13';
+
+        const dp = new DPlayer({
+            container: document.querySelector('#videoContainer'),
+            video: {
+                url: videoURL,
+            },
+        });
+
+        const wsc = new WebSocket(wss);
+
+        let autoPlay = true;
+        let busy = false;
+
+        wsc.onmessage = message => {
+            let data = JSON.parse(message.data);
+            if (data.status === -1) {
+                wsc.send(JSON.stringify({
+                    id: vid,
+                    command: 'upload',
+                    paused: dp.video.paused,
+                    playbackProgress: dp.video.currentTime,
+                }));
+
+                return;
+            }
+
+            if (data.status === 1) {
+                data.vstatus === 'pause' ? dp.pause() : dp.play();
+
+                if (data.playbackProgress !== 0) {
+                    dp.video.currentTime = data.playbackProgress;
+                }
+            } else if (data.status !== -2) {
+                busy = true;
+                if (data.action[0] === 'vstatus') {
+                    data.action[1] === 'pause' ? dp.pause() : dp.play();
+                }
+                if (data.action[0] === 'vprogress') {
+                    dp.seek(data.action[1])
+                }
+            }
+
+            setTimeout(() => {
+                busy = false;
+            }, 250);
+        }
+
+        wsc.onopen = () => {
+            wsc.send(JSON.stringify({
+                id: vid,
+                command: 'get',
+            }));
+        }
+
+        dp.on('pause', () => {
+            if (busy) return;
+            wsc.send(JSON.stringify({
+                id: vid,
+                command: 'pause',
+                paused: true
+            }))
+        })
+
+        dp.on('play', () => {
+            if (busy) return;
+            wsc.send(JSON.stringify({
+                id: vid,
+                command: 'play',
+                paused: false
+            }))
+        })
+
+        dp.on('seeked', () => {
+            if (busy) return;
+            wsc.send(JSON.stringify({
+                id: vid,
+                command: 'seeked',
+                playbackProgress: dp.video.currentTime
+            }))
+        })
+    </script>
+</body>
+
+</html>
