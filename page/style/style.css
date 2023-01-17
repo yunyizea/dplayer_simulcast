@@ -7,3 +7,40 @@
     width: 1000px;
     margin: 20px auto;
 }
+
+#videoList {
+    width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+#title {
+    text-align: center;
+}
+
+.vBtn {
+    width: 100px;
+    padding: 10px;
+    text-align: center;
+    line-height: 20px;
+    height: 20px;
+    background-color: #ddd;
+    margin: 2px 4px 2px 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: ease-in-out .1s;
+}
+
+.vBtn:hover {
+    background-color: #ccc;
+    font-size: 1.05rem;
+}
+
+.selected {
+    background-color: #bbb;
+    font-style: 1.05rem;
+}

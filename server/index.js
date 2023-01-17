@@ -16,9 +16,14 @@ wss.addListener('connection', (wsc, req) => {
         try {
             let msg = JSON.parse(message);
 
+            if (msg.id === '') {
+                return;
+            }
+
             if (msg.command === 'upload') {
                 cache[msg.id] = {
                     status: 0,
+                    vid: msg.id,
                     vstatus: msg.paused ? 'paused' : 'play',
                     playbackProgress: msg.playbackProgress
                 }
