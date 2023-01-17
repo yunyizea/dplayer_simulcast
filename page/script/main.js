@@ -1,8 +1,48 @@
-const title = '%E4%B8%89%E7%94%9F%E4%B8%89%E4%B8%96%E6%9E%95%E4%B8%8A%E4%B9%A6';
-const videoServer = 'https://video.yunyize.com:8000';
+const title = 'monogatari_01';
+const videoServer = 'https://lam.lpsub.com:2087/NOTPT';
 const videoListURL = `${videoServer}/${title}/list.json`;
 const wss = 'ws://localhost:14514';
-const vid = '7afc9004fcef7'
+
+function GetRequest(urlStr) {
+    if (typeof urlStr == "undefined") {
+        var url = decodeURI(location.search); //获取url中"?"符后的字符串
+    } else {
+        var url = "?" + urlStr.split("?")[1];
+    }
+    var theRequest = new Object();
+    if (url.indexOf("?") != -1) {
+        var str = url.substr(1);
+        strs = str.split("&");
+        for (var i = 0; i < strs.length; i++) {
+            theRequest[strs[i].split("=")[0]] = decodeURI(strs[i].split("=")[1]);
+        }
+    }
+    return theRequest;
+}
+
+function uuid() {
+    var s = [];
+    var hexDigits = "0123456789abcdef";
+    for (var i = 0; i < 36; i++) {
+        s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+    }
+    s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
+    s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
+    s[8] = s[13] = s[18] = s[23] = "-";
+
+    var uuid = s.join("");
+    return uuid;
+}
+
+var vid
+
+const keys_url = Object.keys({})
+if ( Object.keys(GetRequest()).includes('key') ) {
+    vid = GetRequest()['key'];
+} else {
+    vid = uuid();
+}
+
 
 const dp = new DPlayer({
     container: document.querySelector('#videoContainer'),
