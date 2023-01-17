@@ -24,6 +24,7 @@ wss.addListener('connection', (wsc, req) => {
                 cache[msg.id] = {
                     status: 0,
                     vid: msg.id,
+                    vURL: msg.videoURL,
                     vstatus: msg.paused ? 'paused' : 'play',
                     playbackProgress: msg.playbackProgress
                 }
