@@ -18,9 +18,16 @@ wss.addListener('connection', (wsc, req) => {
 
             if (msg.command === 'upload') {
                 cache[msg.id] = {
+                    status: 0,
                     vstatus: msg.paused ? 'paused' : 'play',
                     playbackProgress: msg.playbackProgress
                 }
+
+                device.forEach(_wsc => {
+                    if (_wsc !== wsc) {
+                        _wsc.send(JSON.stringify(cache[msg.id]));
+                    }
+                })
                 log(`上传数据, ID'${msg.id}'的数据已缓存.`, `${cip}:${cport}`);
             }
 
@@ -35,49 +42,6 @@ wss.addListener('connection', (wsc, req) => {
                         msg: '此ID在缓存中不存在数据'
                     }));
                     log(`请求所有数据, 但是ID'${msg.id}'的缓存数据不存在.`, `${cip}:${cport}`);
-                }
-            }
-
-            if (msg.command === 'pause' || msg.command === 'play') {
-                if (cache[msg.id]) {
-                    cache[msg.id].vstatus = msg.command
-
-                    device.forEach(_wsc => {
-                        if (_wsc !== wsc) {
-                            _wsc.send(JSON.stringify({
-                                status: 0,
-                                action: ['vstatus', msg.command]
-                            }))
-                        }
-                    })
-
-                    log(`上传视频状态数据, ID'${msg.id}'的数据已缓存.`, `${cip}:${cport}`);
-                } else {
-                    wsc.send(JSON.stringify({
-                        status: -2
-                    }))
-                    log(`上传视频状态数据, ID'${msg.id}'的缓存不存在, 上传失败.`, `${cip}:${cport}`);
-                }
-            }
-
-            if (msg.command === 'seeked') {
-                if (cache[msg.id]) {
-                    cache[msg.id].playbackProgress = msg.playbackProgress
-
-                    device.forEach(_wsc => {
-                        if (_wsc !== wsc) {
-                            _wsc.send(JSON.stringify({
-                                status: 0,
-                                action: ['vprogress', msg.playbackProgress]
-                            }))
-                        }
-                    })
-                    log(`上传视频进度数据, ID'${msg.id}'的数据已缓存.`, `${cip}:${cport}`);
-                } else {
-                    wsc.send(JSON.stringify({
-                        status: -2
-                    }))
-                    log(`上传视频进度数据, ID'${msg.id}'的缓存不存在, 上传失败.`, `${cip}:${cport}`);
                 }
             }
         } catch (e) {
